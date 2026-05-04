@@ -57,4 +57,3 @@ output "delete_ticket_lambda_name" {
 output "delete_ticket_url_pattern" {
   value = "${aws_apigatewayv2_stage.dev.invoke_url}/tickets/{ticket_id}"
 }
-
