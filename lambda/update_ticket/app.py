@@ -1,62 +1,34 @@
-import json
-import os
-from datetime import datetime, timezone
-
-import boto3
+from shared import get_ticket_id, get_tickets_table, parse_json_body, response, utc_now_iso
 
 
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.environ["TICKETS_TABLE_NAME"])
+table = get_tickets_table()
 
 VALID_STATUSES = {"OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"}
-
-# Optional but recommended: only allow these fields to be updated
-ALLOWED_UPDATE_FIELDS = {
-    "customer_name",
-    "customer_email",
-    "issue",
-    "status"
-}
+ALLOWED_UPDATE_FIELDS = {"customer_name", "customer_email", "issue", "status"}
 
 
 def handler(event, context):
     try:
-        ticket_id = event.get("pathParameters", {}).get("ticket_id")
+        ticket_id = get_ticket_id(event)
 
         if not ticket_id:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"message": "ticket_id is required"})
-            }
+            return response(400, {"message": "ticket_id is required"})
 
-        body = json.loads(event.get("body", "{}"))
-
-        # Never allow updating the primary key
+        body = parse_json_body(event)
         body.pop("ticket_id", None)
 
-        # Only keep allowed fields
-        update_data = {
-            key: value
-            for key, value in body.items()
-            if key in ALLOWED_UPDATE_FIELDS
-        }
+        update_data = {key: value for key, value in body.items() if key in ALLOWED_UPDATE_FIELDS}
 
         if not update_data:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"message": "No valid fields to update"})
-            }
+            return response(400, {"message": "No valid fields to update"})
 
         if "status" in update_data and update_data["status"] not in VALID_STATUSES:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({
-                    "message": "Invalid status",
-                    "valid_statuses": list(VALID_STATUSES)
-                })
-            }
+            return response(400, {
+                "message": "Invalid status",
+                "valid_statuses": list(VALID_STATUSES)
+            })
 
-        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        update_data["updated_at"] = utc_now_iso()
 
         update_parts = []
         expression_attribute_names = {}
@@ -70,7 +42,7 @@ def handler(event, context):
             expression_attribute_names[name_placeholder] = key
             expression_attribute_values[value_placeholder] = value
 
-        response = table.update_item(
+        response_data = table.update_item(
             Key={"ticket_id": ticket_id},
             UpdateExpression="SET " + ", ".join(update_parts),
             ConditionExpression="attribute_exists(ticket_id)",
@@ -79,25 +51,15 @@ def handler(event, context):
             ReturnValues="ALL_NEW"
         )
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "message": "Ticket updated successfully",
-                "ticket": response["Attributes"]
-            })
-        }
+        return response(200, {
+            "message": "Ticket updated successfully",
+            "ticket": response_data["Attributes"]
+        })
 
-    except dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
-        return {
-            "statusCode": 404,
-            "body": json.dumps({"message": "Ticket not found"})
-        }
-
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({
-                "message": "Internal server error",
-                "error": str(e)
-            })
-        }
+    except table.meta.client.exceptions.ConditionalCheckFailedException:
+        return response(404, {"message": "Ticket not found"})
+    except Exception as error:
+        return response(500, {
+            "message": "Internal server error",
+            "error": str(error)
+        })

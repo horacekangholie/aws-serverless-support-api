@@ -1,31 +1,31 @@
 data "archive_file" "create_ticket_lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../lambda/create_ticket/app.py"
+  source_dir  = "${path.module}/../lambda"
   output_path = "${path.module}/create_ticket_lambda.zip"
 }
 
 data "archive_file" "get_ticket_lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../lambda/get_ticket/app.py"
+  source_dir  = "${path.module}/../lambda"
   output_path = "${path.module}/get_ticket_lambda.zip"
 }
 
 data "archive_file" "update_ticket_lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../lambda/update_ticket/app.py"
+  source_dir  = "${path.module}/../lambda"
   output_path = "${path.module}/update_ticket_lambda.zip"
 }
 
 data "archive_file" "delete_ticket_lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../lambda/delete_ticket/app.py"
+  source_dir  = "${path.module}/../lambda"
   output_path = "${path.module}/delete_ticket_lambda.zip"
 }
 
 resource "aws_lambda_function" "create_ticket" {
   function_name = "${local.name_prefix}-create-ticket"
   role          = aws_iam_role.create_ticket_lambda_role.arn
-  handler       = "app.handler"
+  handler       = "create_ticket.app.handler"
   runtime       = "python3.12"
 
   filename         = data.archive_file.create_ticket_lambda_zip.output_path
@@ -47,7 +47,7 @@ resource "aws_lambda_function" "create_ticket" {
 resource "aws_lambda_function" "get_ticket" {
   function_name = "${local.name_prefix}-get-ticket"
   role          = aws_iam_role.get_ticket_lambda_role.arn
-  handler       = "app.handler"
+  handler       = "get_ticket.app.handler"
   runtime       = "python3.12"
 
   filename         = data.archive_file.get_ticket_lambda_zip.output_path
@@ -69,7 +69,7 @@ resource "aws_lambda_function" "get_ticket" {
 resource "aws_lambda_function" "update_ticket" {
   function_name = "${local.name_prefix}-update-ticket"
   role          = aws_iam_role.update_ticket_lambda_role.arn
-  handler       = "app.handler"
+  handler       = "update_ticket.app.handler"
   runtime       = "python3.12"
 
   filename         = data.archive_file.update_ticket_lambda_zip.output_path
@@ -91,7 +91,7 @@ resource "aws_lambda_function" "update_ticket" {
 resource "aws_lambda_function" "delete_ticket" {
   function_name = "${local.name_prefix}-delete-ticket"
   role          = aws_iam_role.delete_ticket_lambda_role.arn
-  handler       = "app.handler"
+  handler       = "delete_ticket.app.handler"
   runtime       = "python3.12"
 
   filename         = data.archive_file.delete_ticket_lambda_zip.output_path
