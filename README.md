@@ -253,6 +253,8 @@ delete_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazo
 - Add CI checks (`terraform fmt/validate/plan`, linting, unit tests) before deployment.
 
 ## AWS Standard Architecture Diagram (Phase 7)
+![AWS Architecture Diagram](/images/aws_architecture_diagram.svg)
+
 ```mermaid
 flowchart LR
     U[Client: Postman / curl / App] --> APIGW[Amazon API Gateway HTTP API]
@@ -290,7 +292,6 @@ flowchart LR
 - Each endpoint maps to a dedicated Lambda handler in `lambda/app.py`.
 - All handlers use a shared DynamoDB table for ticket persistence.
 - Observability is split into API access logs and per-function execution logs.
-
 
 
 
