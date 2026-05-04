@@ -10,6 +10,21 @@ resource "aws_apigatewayv2_stage" "dev" {
   name        = var.environment
   auto_deploy = true
 
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway_access_logs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+      integrationErr = "$context.integrationErrorMessage"
+    })
+  }
+
   tags = local.common_tags
 }
 
@@ -96,6 +111,28 @@ resource "aws_lambda_permission" "allow_api_gateway_delete_ticket" {
   statement_id  = "AllowExecutionFromAPIGatewayDeleteTicket"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.delete_ticket.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_apigatewayv2_api.support_api.execution_arn}/*/*"
+}
+
+resource "aws_apigatewayv2_integration" "list_tickets_lambda" {
+  api_id                 = aws_apigatewayv2_api.support_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.list_tickets.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "list_tickets_route" {
+  api_id    = aws_apigatewayv2_api.support_api.id
+  route_key = "GET /tickets"
+  target    = "integrations/${aws_apigatewayv2_integration.list_tickets_lambda.id}"
+}
+
+resource "aws_lambda_permission" "allow_api_gateway_list_tickets" {
+  statement_id  = "AllowExecutionFromAPIGatewayListTickets"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.list_tickets.function_name
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.support_api.execution_arn}/*/*"

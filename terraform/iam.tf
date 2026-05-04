@@ -169,3 +169,46 @@ resource "aws_iam_role_policy" "delete_ticket_lambda_policy" {
     ]
   })
 }
+
+resource "aws_iam_role" "list_tickets_lambda_role" {
+  name = "${local.name_prefix}-list-tickets-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+
+  tags = local.common_tags
+}
+
+resource "aws_iam_role_policy" "list_tickets_lambda_policy" {
+  name = "${local.name_prefix}-list-tickets-lambda-policy"
+  role = aws_iam_role.list_tickets_lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:Scan"
+        ]
+        Resource = aws_dynamodb_table.tickets.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "${aws_cloudwatch_log_group.list_tickets_lambda_logs.arn}:*"
+      }
+    ]
+  })
+}

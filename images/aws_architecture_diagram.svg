@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+    </marker>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #111; }
+      .label { font: 600 22px Arial, sans-serif; fill: #111; }
+      .text { font: 18px Arial, sans-serif; fill: #222; }
+      .small { font: 16px Arial, sans-serif; fill: #222; }
+    </style>
+  </defs>
+
+  <text x="430" y="50" class="title">Serverless Support API - AWS Architecture Diagram</text>
+
+  <rect x="60" y="160" width="270" height="120" rx="14" fill="#E8F4FF" stroke="#2F4F9D" stroke-width="3"/>
+  <text x="195" y="215" text-anchor="middle" class="label">Client</text>
+  <text x="195" y="245" text-anchor="middle" class="small">(Postman / curl / app)</text>
+
+  <rect x="460" y="145" width="450" height="160" rx="14" fill="#FFF4E8" stroke="#B66A00" stroke-width="3"/>
+  <text x="685" y="215" text-anchor="middle" class="label">Amazon API Gateway</text>
+  <text x="685" y="247" text-anchor="middle" class="text">HTTP API (stage: dev)</text>
+
+  <rect x="1040" y="80" width="500" height="390" rx="14" fill="#EEFBEF" stroke="#2A8C4A" stroke-width="3"/>
+  <text x="1290" y="125" text-anchor="middle" class="label">AWS Lambda (Python)</text>
+  <text x="1080" y="170" class="text">• create_ticket_handler</text>
+  <text x="1080" y="205" class="text">• list_tickets_handler</text>
+  <text x="1080" y="240" class="text">• get_ticket_handler</text>
+  <text x="1080" y="275" class="text">• update_ticket_handler</text>
+  <text x="1080" y="310" class="text">• delete_ticket_handler</text>
+
+  <text x="930" y="150" class="small">POST /tickets</text>
+  <text x="930" y="185" class="small">GET /tickets</text>
+  <text x="930" y="220" class="small">GET /tickets/{ticket_id}</text>
+  <text x="930" y="255" class="small">PATCH /tickets/{ticket_id}</text>
+  <text x="930" y="290" class="small">DELETE /tickets/{ticket_id}</text>
+
+  <rect x="1040" y="560" width="360" height="170" rx="14" fill="#F2EDFF" stroke="#5E3AA1" stroke-width="3"/>
+  <text x="1220" y="635" text-anchor="middle" class="label">Amazon DynamoDB</text>
+  <text x="1220" y="668" text-anchor="middle" class="text">Table: tickets</text>
+
+  <rect x="220" y="560" width="500" height="180" rx="14" fill="#FFF0F5" stroke="#B03060" stroke-width="3"/>
+  <text x="470" y="620" text-anchor="middle" class="label">Amazon CloudWatch Logs</text>
+  <text x="470" y="655" text-anchor="middle" class="text">- API Gateway access logs</text>
+  <text x="470" y="685" text-anchor="middle" class="text">- Lambda execution logs</text>
+
+  <line x1="330" y1="220" x2="460" y2="220" stroke="#333" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="910" y1="220" x2="1040" y2="220" stroke="#333" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="1220" y1="470" x2="1220" y2="560" stroke="#333" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="680" y1="305" x2="680" y2="560" stroke="#333" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="1130" y1="470" x2="720" y2="560" stroke="#333" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="60" y="800" width="1480" height="120" rx="12" fill="#FAFAFA" stroke="#888" stroke-width="2"/>
+  <text x="90" y="845" class="text">Request flow: Client -&gt; API Gateway -&gt; Lambda -&gt; DynamoDB</text>
+  <text x="90" y="875" class="text">Observability: API Gateway access logs + Lambda execution logs -&gt; CloudWatch Logs</text>
+  <text x="90" y="905" class="text">Provisioning: Terraform manages all resources in this architecture.</text>
+</svg>
