@@ -1,53 +1,26 @@
-import json
-import os
-
-import boto3
+from shared import get_ticket_id, get_tickets_table, response
 
 
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.environ["TICKETS_TABLE_NAME"])
+table = get_tickets_table()
 
 
 def handler(event, context):
     try:
-        ticket_id = event.get("pathParameters", {}).get("ticket_id")
+        ticket_id = get_ticket_id(event)
 
         if not ticket_id:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({
-                    "message": "ticket_id is required"
-                })
-            }
+            return response(400, {"message": "ticket_id is required"})
 
-        response = table.get_item(
-            Key={
-                "ticket_id": ticket_id
-            }
-        )
-
-        item = response.get("Item")
+        response_data = table.get_item(Key={"ticket_id": ticket_id})
+        item = response_data.get("Item")
 
         if not item:
-            return {
-                "statusCode": 404,
-                "body": json.dumps({
-                    "message": "Ticket not found"
-                })
-            }
+            return response(404, {"message": "Ticket not found"})
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "ticket": item
-            })
-        }
+        return response(200, {"ticket": item})
 
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({
-                "message": "Internal server error",
-                "error": str(e)
-            })
-        }
+    except Exception as error:
+        return response(500, {
+            "message": "Internal server error",
+            "error": str(error)
+        })

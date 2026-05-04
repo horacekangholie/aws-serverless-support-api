@@ -1,47 +1,30 @@
-import json
-import os
-
-import boto3
+from shared import get_ticket_id, get_tickets_table, response
 
 
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.environ["TICKETS_TABLE_NAME"])
+table = get_tickets_table()
 
 
 def handler(event, context):
     try:
-        ticket_id = event.get("pathParameters", {}).get("ticket_id")
+        ticket_id = get_ticket_id(event)
 
         if not ticket_id:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"message": "ticket_id is required"})
-            }
+            return response(400, {"message": "ticket_id is required"})
 
         table.delete_item(
             Key={"ticket_id": ticket_id},
             ConditionExpression="attribute_exists(ticket_id)"
         )
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "message": "Ticket deleted successfully",
-                "ticket_id": ticket_id
-            })
-        }
+        return response(200, {
+            "message": "Ticket deleted successfully",
+            "ticket_id": ticket_id
+        })
 
-    except dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
-        return {
-            "statusCode": 404,
-            "body": json.dumps({"message": "Ticket not found"})
-        }
-
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({
-                "message": "Internal server error",
-                "error": str(e)
-            })
-        }
+    except table.meta.client.exceptions.ConditionalCheckFailedException:
+        return response(404, {"message": "Ticket not found"})
+    except Exception as error:
+        return response(500, {
+            "message": "Internal server error",
+            "error": str(error)
+        })
