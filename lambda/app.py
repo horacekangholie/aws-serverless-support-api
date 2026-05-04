@@ -126,3 +126,30 @@ def delete_ticket_handler(event, context):
         return response(404, {"message": "Ticket not found"})
     except Exception as error:
         return response(500, {"message": "Internal server error", "error": str(error)})
+
+
+def list_tickets_handler(event, context):
+    try:
+        query_params = event.get("queryStringParameters") or {}
+        limit = int(query_params.get("limit", 20))
+        limit = max(1, min(limit, 100))
+
+        scan_params = {"Limit": limit}
+        last_evaluated_key = query_params.get("last_evaluated_key")
+
+        if last_evaluated_key:
+            scan_params["ExclusiveStartKey"] = {"ticket_id": last_evaluated_key}
+
+        response_data = table.scan(**scan_params)
+        items = response_data.get("Items", [])
+        next_key = response_data.get("LastEvaluatedKey", {}).get("ticket_id")
+
+        return response(200, {
+            "tickets": items,
+            "count": len(items),
+            "next_last_evaluated_key": next_key
+        })
+    except ValueError:
+        return response(400, {"message": "limit must be an integer between 1 and 100"})
+    except Exception as error:
+        return response(500, {"message": "Internal server error", "error": str(error)})

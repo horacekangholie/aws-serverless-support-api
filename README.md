@@ -39,6 +39,9 @@ This route creates a support ticket in DynamoDB
 ```GET /tickets/{ticket_id}```
 This route retrieve the support ticket in DynamoDB based on the ticket_id
 
+```GET /tickets```
+This route retrieves a paginated list of support tickets from DynamoDB
+
 ```PATCH /tickets/{ticket_id}```
 This route update ticket in DynamoDB based on the ticket_id
 
@@ -210,7 +213,6 @@ update_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazo
 delete_ticket_lambda_name = "serverless-support-api-dev-delete-ticket"
 delete_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazonaws.com/dev/tickets/{ticket_id}"
 ```
-
 
 
 

@@ -22,6 +22,12 @@ data "archive_file" "delete_ticket_lambda_zip" {
   output_path = "${path.module}/delete_ticket_lambda.zip"
 }
 
+data "archive_file" "list_tickets_lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../lambda/app.py"
+  output_path = "${path.module}/list_tickets_lambda.zip"
+}
+
 resource "aws_lambda_function" "create_ticket" {
   function_name = "${local.name_prefix}-create-ticket"
   role          = aws_iam_role.create_ticket_lambda_role.arn
@@ -105,6 +111,28 @@ resource "aws_lambda_function" "delete_ticket" {
 
   depends_on = [
     aws_cloudwatch_log_group.delete_ticket_lambda_logs
+  ]
+
+  tags = local.common_tags
+}
+
+resource "aws_lambda_function" "list_tickets" {
+  function_name = "${local.name_prefix}-list-tickets"
+  role          = aws_iam_role.list_tickets_lambda_role.arn
+  handler       = "app.list_tickets_handler"
+  runtime       = "python3.12"
+
+  filename         = data.archive_file.list_tickets_lambda_zip.output_path
+  source_code_hash = data.archive_file.list_tickets_lambda_zip.output_base64sha256
+
+  environment {
+    variables = {
+      TICKETS_TABLE_NAME = aws_dynamodb_table.tickets.name
+    }
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.list_tickets_lambda_logs
   ]
 
   tags = local.common_tags
