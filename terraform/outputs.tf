@@ -57,3 +57,11 @@ output "delete_ticket_lambda_name" {
 output "delete_ticket_url_pattern" {
   value = "${aws_apigatewayv2_stage.dev.invoke_url}/tickets/{ticket_id}"
 }
+
+output "list_tickets_lambda_name" {
+  value = aws_lambda_function.list_tickets.function_name
+}
+
+output "list_tickets_url" {
+  value = "${aws_apigatewayv2_stage.dev.invoke_url}/tickets"
+}
