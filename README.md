@@ -1,5 +1,27 @@
 # Project 4: Serverless Customer Support API Platform
 
+## Portfolio Snapshot
+- **Goal:** Build a production-style serverless ticketing API with low ops overhead and clear observability.
+- **Stack:** API Gateway (HTTP API), AWS Lambda (Python), DynamoDB (On-Demand), CloudWatch Logs, Terraform.
+- **Outcome:** Implemented full ticket lifecycle APIs (`create`, `list`, `get`, `update`, `delete`) with infrastructure as code and stage access logging.
+
+## Architecture Overview
+```text
+Client
+  -> API Gateway (HTTP API, /dev stage)
+    -> Lambda handlers (create/list/get/update/delete)
+      -> DynamoDB (tickets table)
+  -> CloudWatch Logs
+      - Lambda execution logs
+      - API Gateway access logs
+```
+
+## Why this design
+- **Serverless first:** avoids server management while scaling automatically.
+- **DynamoDB On-Demand:** good fit for unpredictable or portfolio-scale traffic.
+- **Function-per-operation:** simple IAM boundaries and easier endpoint-level reasoning.
+- **Access logging enabled:** request-level observability for troubleshooting and demo readiness.
+
 ### Business problem:
 A company needs a lightweight customer support ticket API that can handle unpredictable traffic without managing servers.
 
@@ -38,6 +60,9 @@ This route creates a support ticket in DynamoDB
 
 ```GET /tickets/{ticket_id}```
 This route retrieve the support ticket in DynamoDB based on the ticket_id
+
+```GET /tickets```
+This route retrieves a paginated list of support tickets from DynamoDB
 
 ```PATCH /tickets/{ticket_id}```
 This route update ticket in DynamoDB based on the ticket_id
@@ -205,15 +230,66 @@ api_endpoint = "https://qrebseqcmk.execute-api.ap-southeast-1.amazonaws.com/dev"
 create_ticket_url = "https://qrebseqcmk.execute-api.ap-southeast-1.amazonaws.com/dev/tickets"
 get_ticket_lambda_name = "serverless-support-api-dev-get-ticket"
 get_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazonaws.com/dev/tickets/{ticket_id}"
-update_ticket_status_lambda_name = "serverless-support-api-dev-update-ticket-status"
+update_ticket_lambda_name = "serverless-support-api-dev-update-ticket"
 update_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazonaws.com/dev/tickets/{ticket_id}"
 delete_ticket_lambda_name = "serverless-support-api-dev-delete-ticket"
 delete_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazonaws.com/dev/tickets/{ticket_id}"
 ```
 
+### API Gateway Access Logs
+- Enabled access logs on the HTTP API stage (`dev`) and configured JSON log format with request metadata (request id, route, status, source IP, and integration error message).
+- Logs are written to CloudWatch log group:
+  `/aws/apigateway/serverless-support-api-dev-http-api-access`
 
+## Tradeoffs and Improvements
+### Current tradeoffs
+- `GET /tickets` currently uses DynamoDB `Scan`, which is simple for demonstration but less efficient at large scale.
+- Single `lambda/app.py` improves maintainability for this project, but larger systems may split by bounded context/package.
 
+### Next improvements
+- Add filtering/query patterns and pagination tokens with opaque encoding for list endpoint.
+- Add structured application logs and CloudWatch dashboards/alarms.
+- Add authentication/authorization (JWT authorizer or Cognito) for production security posture.
+- Add CI checks (`terraform fmt/validate/plan`, linting, unit tests) before deployment.
 
+## AWS Standard Architecture Diagram (Phase 7)
+```mermaid
+flowchart LR
+    U[Client: Postman / curl / App] --> APIGW[Amazon API Gateway HTTP API]
+
+    subgraph Lambda["AWS Lambda (Python)"]
+      C[create_ticket_handler]
+      L[list_tickets_handler]
+      G[get_ticket_handler]
+      P[update_ticket_handler]
+      D[delete_ticket_handler]
+    end
+
+    APIGW -->|POST /tickets| C
+    APIGW -->|GET /tickets| L
+    APIGW -->|GET /tickets/{ticket_id}| G
+    APIGW -->|PATCH /tickets/{ticket_id}| P
+    APIGW -->|DELETE /tickets/{ticket_id}| D
+
+    C --> DB[(Amazon DynamoDB: tickets)]
+    L --> DB
+    G --> DB
+    P --> DB
+    D --> DB
+
+    APIGW --> APILogs[CloudWatch Log Group: API Access Logs]
+    C --> FnLogs[CloudWatch Log Groups: Lambda Logs]
+    L --> FnLogs
+    G --> FnLogs
+    P --> FnLogs
+    D --> FnLogs
+```
+
+### Diagram Notes
+- API Gateway is the single ingress and routes requests by method + path.
+- Each endpoint maps to a dedicated Lambda handler in `lambda/app.py`.
+- All handlers use a shared DynamoDB table for ticket persistence.
+- Observability is split into API access logs and per-function execution logs.
 
 
 
