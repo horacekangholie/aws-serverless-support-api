@@ -253,7 +253,7 @@ delete_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazo
 - Add CI checks (`terraform fmt/validate/plan`, linting, unit tests) before deployment.
 
 ## AWS Standard Architecture Diagram (Phase 7)
-![AWS Architecture Diagram](/images/aws_architecture_diagram.svg)
+![AWS Architecture Diagram](/images/Diagram.png)
 
 ```mermaid
 flowchart LR
