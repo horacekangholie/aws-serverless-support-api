@@ -100,3 +100,25 @@ resource "aws_lambda_permission" "allow_api_gateway_delete_ticket" {
 
   source_arn = "${aws_apigatewayv2_api.support_api.execution_arn}/*/*"
 }
+
+resource "aws_apigatewayv2_integration" "list_tickets_lambda" {
+  api_id                 = aws_apigatewayv2_api.support_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.list_tickets.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "list_tickets_route" {
+  api_id    = aws_apigatewayv2_api.support_api.id
+  route_key = "GET /tickets"
+  target    = "integrations/${aws_apigatewayv2_integration.list_tickets_lambda.id}"
+}
+
+resource "aws_lambda_permission" "allow_api_gateway_list_tickets" {
+  statement_id  = "AllowExecutionFromAPIGatewayListTickets"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.list_tickets.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_apigatewayv2_api.support_api.execution_arn}/*/*"
+}
