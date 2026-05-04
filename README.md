@@ -252,6 +252,44 @@ delete_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazo
 - Add authentication/authorization (JWT authorizer or Cognito) for production security posture.
 - Add CI checks (`terraform fmt/validate/plan`, linting, unit tests) before deployment.
 
+## AWS Standard Architecture Diagram (Phase 7)
+```mermaid
+flowchart LR
+    U[Client: Postman / curl / App] --> APIGW[Amazon API Gateway HTTP API]
+
+    subgraph Lambda["AWS Lambda (Python)"]
+      C[create_ticket_handler]
+      L[list_tickets_handler]
+      G[get_ticket_handler]
+      P[update_ticket_handler]
+      D[delete_ticket_handler]
+    end
+
+    APIGW -->|POST /tickets| C
+    APIGW -->|GET /tickets| L
+    APIGW -->|GET /tickets/{ticket_id}| G
+    APIGW -->|PATCH /tickets/{ticket_id}| P
+    APIGW -->|DELETE /tickets/{ticket_id}| D
+
+    C --> DB[(Amazon DynamoDB: tickets)]
+    L --> DB
+    G --> DB
+    P --> DB
+    D --> DB
+
+    APIGW --> APILogs[CloudWatch Log Group: API Access Logs]
+    C --> FnLogs[CloudWatch Log Groups: Lambda Logs]
+    L --> FnLogs
+    G --> FnLogs
+    P --> FnLogs
+    D --> FnLogs
+```
+
+### Diagram Notes
+- API Gateway is the single ingress and routes requests by method + path.
+- Each endpoint maps to a dedicated Lambda handler in `lambda/app.py`.
+- All handlers use a shared DynamoDB table for ticket persistence.
+- Observability is split into API access logs and per-function execution logs.
 
 
 
