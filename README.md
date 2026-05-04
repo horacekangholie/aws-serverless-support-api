@@ -224,4 +224,3 @@ delete_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazo
 
 
 
-
