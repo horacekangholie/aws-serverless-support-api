@@ -84,8 +84,8 @@ resource "aws_iam_role_policy" "get_ticket_lambda_policy" {
   })
 }
 
-resource "aws_iam_role" "update_ticket_status_lambda_role" {
-  name = "${local.name_prefix}-update-ticket-status-lambda-role"
+resource "aws_iam_role" "update_ticket_lambda_role" {
+  name = "${local.name_prefix}-update-ticket-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -101,9 +101,9 @@ resource "aws_iam_role" "update_ticket_status_lambda_role" {
   tags = local.common_tags
 }
 
-resource "aws_iam_role_policy" "update_ticket_status_lambda_policy" {
-  name = "${local.name_prefix}-update-ticket-status-lambda-policy"
-  role = aws_iam_role.update_ticket_status_lambda_role.id
+resource "aws_iam_role_policy" "update_ticket_lambda_policy" {
+  name = "${local.name_prefix}-update-ticket-lambda-policy"
+  role = aws_iam_role.update_ticket_lambda_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -121,7 +121,7 @@ resource "aws_iam_role_policy" "update_ticket_status_lambda_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
-        Resource = "${aws_cloudwatch_log_group.update_ticket_status_lambda_logs.arn}:*"
+        Resource = "${aws_cloudwatch_log_group.update_ticket_lambda_logs.arn}:*"
       }
     ]
   })

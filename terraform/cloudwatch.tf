@@ -12,8 +12,8 @@ resource "aws_cloudwatch_log_group" "get_ticket_lambda_logs" {
   tags = local.common_tags
 }
 
-resource "aws_cloudwatch_log_group" "update_ticket_status_lambda_logs" {
-  name              = "/aws/lambda/${local.name_prefix}-update-ticket-status"
+resource "aws_cloudwatch_log_group" "update_ticket_lambda_logs" {
+  name              = "/aws/lambda/${local.name_prefix}-update-ticket"
   retention_in_days = 14
 
   tags = local.common_tags

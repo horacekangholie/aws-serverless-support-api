@@ -10,10 +10,10 @@ data "archive_file" "get_ticket_lambda_zip" {
   output_path = "${path.module}/get_ticket_lambda.zip"
 }
 
-data "archive_file" "update_ticket_status_lambda_zip" {
+data "archive_file" "update_ticket_lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../lambda/update_ticket_status/app.py"
-  output_path = "${path.module}/update_ticket_status_lambda.zip"
+  source_file = "${path.module}/../lambda/update_ticket/app.py"
+  output_path = "${path.module}/update_ticket_lambda.zip"
 }
 
 data "archive_file" "delete_ticket_lambda_zip" {
@@ -66,14 +66,14 @@ resource "aws_lambda_function" "get_ticket" {
   tags = local.common_tags
 }
 
-resource "aws_lambda_function" "update_ticket_status" {
-  function_name = "${local.name_prefix}-update-ticket-status"
-  role          = aws_iam_role.update_ticket_status_lambda_role.arn
+resource "aws_lambda_function" "update_ticket" {
+  function_name = "${local.name_prefix}-update-ticket"
+  role          = aws_iam_role.update_ticket_lambda_role.arn
   handler       = "app.handler"
   runtime       = "python3.12"
 
-  filename         = data.archive_file.update_ticket_status_lambda_zip.output_path
-  source_code_hash = data.archive_file.update_ticket_status_lambda_zip.output_base64sha256
+  filename         = data.archive_file.update_ticket_lambda_zip.output_path
+  source_code_hash = data.archive_file.update_ticket_lambda_zip.output_base64sha256
 
   environment {
     variables = {
@@ -82,7 +82,7 @@ resource "aws_lambda_function" "update_ticket_status" {
   }
 
   depends_on = [
-    aws_cloudwatch_log_group.update_ticket_status_lambda_logs
+    aws_cloudwatch_log_group.update_ticket_lambda_logs
   ]
 
   tags = local.common_tags

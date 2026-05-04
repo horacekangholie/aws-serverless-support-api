@@ -42,8 +42,8 @@ output "get_ticket_url_pattern" {
   value = "${aws_apigatewayv2_stage.dev.invoke_url}/tickets/{ticket_id}"
 }
 
-output "update_ticket_status_lambda_name" {
-  value = aws_lambda_function.update_ticket_status.function_name
+output "update_ticket_lambda_name" {
+  value = aws_lambda_function.update_ticket.function_name
 }
 
 output "update_ticket_url_pattern" {
