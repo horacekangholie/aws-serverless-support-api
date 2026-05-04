@@ -32,3 +32,10 @@ resource "aws_cloudwatch_log_group" "list_tickets_lambda_logs" {
 
   tags = local.common_tags
 }
+
+resource "aws_cloudwatch_log_group" "api_gateway_access_logs" {
+  name              = "/aws/apigateway/${local.name_prefix}-http-api-access"
+  retention_in_days = 14
+
+  tags = local.common_tags
+}

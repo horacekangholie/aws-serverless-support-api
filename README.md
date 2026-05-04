@@ -214,7 +214,10 @@ delete_ticket_lambda_name = "serverless-support-api-dev-delete-ticket"
 delete_ticket_url_pattern = "https://xqxe4o6klc.execute-api.ap-southeast-1.amazonaws.com/dev/tickets/{ticket_id}"
 ```
 
-
+### API Gateway Access Logs
+- Enabled access logs on the HTTP API stage (`dev`) and configured JSON log format with request metadata (request id, route, status, source IP, and integration error message).
+- Logs are written to CloudWatch log group:
+  `/aws/apigateway/serverless-support-api-dev-http-api-access`
 
 
 
